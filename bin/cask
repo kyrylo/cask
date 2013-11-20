@@ -90,6 +90,7 @@ def get_emacs_version(emacs):
 def find_best_emacs():
     if (sys.platform == 'darwin' and
         get_emacs_version('emacs') < MIN_EMACS_VERSION):
+        debug('Searching for Emacs.app on OS X')
         # On OS X, we have a chance to look at other places, if the default
         # Emacs is not recent enough.  We look for an Emacs.app bundle at
         # various places, and eventually try a brew'd Emacs at
@@ -101,8 +102,10 @@ def find_best_emacs():
             '/usr/local/bin/emacs',
         ]
         for candidate in candidates:
+            debug('Trying candidate {0}'.format(candidate))
             if (is_executable_file(candidate) and
                 get_emacs_version(candidate) >= MIN_EMACS_VERSION):
+                debug('Found suitable candidate {0}'.format(candidate))
                 return candidate
         else:
             return 'emacs'
@@ -111,6 +114,7 @@ def find_best_emacs():
 
 def get_cask_emacs():
     emacs = ENVB.get(b'EMACS')
+    debug('Value of $EMACS: {0!r}'.format(emacs))
     if b'INSIDE_EMACS' in ENVB and emacs == b't':
         # If $INSIDE_EMACS is set, Cask is called from within Emacs, e.g. M-x
         # compile.  In this case, $EMACS may be set as well to the rather
@@ -119,7 +123,7 @@ def get_cask_emacs():
         emacs = None
     debug('Finding best Emacs')
     emacs = emacs or find_best_emacs()
-    debug('Checking Emacs version')
+    debug('Found emacs {0!r}, checking Emacs version'.format(emacs))
     version = get_emacs_version(emacs)
     if version < MIN_EMACS_VERSION:
         raise EmacsVersionError(version)
